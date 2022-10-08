@@ -86,11 +86,11 @@ int my_dgesv(int n, double *a, int *ipiv, double *b)
 		*(a + i*n + j) = *(a + i*n + j)/(*(a + i*n + i));
 		for(k=0;k<n+1;k++)
 		{
-			*(a + k*n + j) = *(a + k*n + j) - ratio*(*(a + i*n + k));
+			*(a + k*n + j) = *(a + k*n + j) - *(a + i*n + j)*(*(a + k*n + i));
 			// *(a + i*n + k) = *(a + j*n + k) - ratio*(*(a + i*n + k));
 		}
 	  }
-	  for(k=i+1;k<n;k++)
+	  for(k=0;k<n;k++)
 	  {
 		for(j=i+1;j<n;j++)
 		{
@@ -135,17 +135,6 @@ void print_matrix_1d_int(int *matrix, int n)
 	}
 }
 
-void print_matrix(double *a, int n)
-{
-    for(int i=0;i<n;i++)
-    {
-        for(int j=0;j<n;j++)
-        {
-            //printf("Yo 2\n");
-            printf("a[%d][%d] = %.10f\n", i, j, *(a + i*n + j));
-        }
-    }
-}
 
 
 void main(int argc, char *argv[])
@@ -170,17 +159,12 @@ void main(int argc, char *argv[])
   int *ipiv = (int *) malloc(sizeof(int) * size);
 
   clock_t tStart = clock();
-  printf("a = \n");
-  print_matrix(a,n);
-  double bf[] = {-3, -32, -47, 49};
-  info = LAPACKE_dgesv(LAPACK_ROW_MAJOR, n, nrhs, aref, lda, ipiv, bf, ldb);//bref, ldb);
+  info = LAPACKE_dgesv(LAPACK_ROW_MAJOR, n, nrhs, aref, lda, ipiv, bref, ldb);
   printf("info = %d\n",info);
   printf("new bref = \n");
   print_matrix_1d(bref,size);
-  printf("new bf = \n");
-  print_matrix_1d_int(bf,size);
   printf("Time taken by OpenBLAS LAPACK: %.2fs\n", (double) (clock() - tStart) / CLOCKS_PER_SEC);
-  printf("ipiv 1 [%d] = %d\n",n-1, ipiv[n-1]);
+  printf("ipiv 1 = %d\n", ipiv[n-1]);
   int *ipiv2 = (int *) malloc(sizeof(int) * size);
 
   tStart = clock();
