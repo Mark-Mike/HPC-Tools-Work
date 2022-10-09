@@ -10,7 +10,7 @@ double *generate_matrix(int size)
   int i;
   double *matrix = (double *) malloc(sizeof(double) * size * size);
 
-  srand(1);
+  //srand(1);
 
   for (i = 0; i < size * size; i++) {
     matrix[i] = rand() % 100;
@@ -48,6 +48,8 @@ extern void print_matrix( char* desc, MKL_INT m, MKL_INT n, double* a, MKL_INT l
 
 }*/
 
+/* n: nb rows of matrix a, nrhs: nb rows of matrix b, matrix a, lda: nb cols
+  of matrix a, ipiv: Pivot indices, matrix b, ldb: nb cols of matrix b */
 int my_dgesv(int n, int nrhs, double *a, int lda, int *ipiv, double *b, int ldb)
 {
 
@@ -57,7 +59,13 @@ int my_dgesv(int n, int nrhs, double *a, int lda, int *ipiv, double *b, int ldb)
   int u,i,j,k;//,n=4;
   double x_matrix[nrhs][ldb];
   double x[n], ratio;
-  double matrix[n][lda+1];
+
+  // requirements :
+  // a_cols = b_rows (because each unknown should have its equivalent value in b in X_matrix)
+  // a_rows = b_rows  b_cols = X_cols
+  //So : n = a_rows = a_cols =  b_rows
+
+  lda = n, nrhs = n;
 
   printf("initial matrix a :\n");
   for(i=0;i<n;i++)
@@ -77,6 +85,8 @@ int my_dgesv(int n, int nrhs, double *a, int lda, int *ipiv, double *b, int ldb)
 	}
 	printf("\n");
   }
+
+  double matrix[n][n+1];
 
   for (u=0;u<ldb;u++)
   {
@@ -134,21 +144,24 @@ int my_dgesv(int n, int nrhs, double *a, int lda, int *ipiv, double *b, int ldb)
 
 	for(i=0;i<n;i++)
 	{
-	  printf("x[%d] = %0.3f\n",i, x[i]);
+	  printf("x[%d] = %6.2f\n",i, x[i]);
 	  x_matrix[i][u] = x[i];
+	  printf("x_matrix[%d][%d] = %6.2f\n",i,u, x_matrix[i][u]);
 	}
 
 	
 
   }
 
+  printf("end u\n");
+
   printf("\nSolution:\n");
-  for(i=0;i<ldb;i++)
+  for(i=0;i<nrhs;i++)
   {
-  	for(j=0;j<nrhs;j++)
+  	for(j=0;j<ldb;j++)
         {
-            //printf("x_matrix[%d][%d] = %.10f\n", i, j, x_matrix[i][j]);
-	    printf( " %6.2f", x_matrix[j][i]);
+            printf("x_matrix[%d][%d] = %6.2f\n", i, j, x_matrix[i][j]);
+	    printf( " %6.2f", x_matrix[i][j]);
         }
 	printf("\n");
   }
@@ -156,69 +169,6 @@ int my_dgesv(int n, int nrhs, double *a, int lda, int *ipiv, double *b, int ldb)
   
 }
 
-/*int my_dgesv(int n, double *a, int *ipiv, double *b)
-{
-  printf("Hi, the size is : %d\n", n);
-  for(int i=0;i<n;i++)
-  {
-    for(int j=0;j<n;j++)
-    {
-      //printf("pow(*(a + i*n + j)-*(b + i*n + j),2) = %d\n", (int)sqrt(pow(*(a + i*n + j)-*(b + i*n + j),2)));
-      *(ipiv + i*n + j) = (int)sqrt(pow(*(a + i*n + j)-*(b + i*n + j),2));
-      //printf("ipiv[%d][%d] = %d\n", i, j, *(ipiv + i*n + j));
-      if (*(ipiv + i*n + j) >= 1)
-      {
-        return 0;
-      }
-    }
-  }
-  return 1;
-}*/
-
-
-/*int my_dgesv(int n, double *a, int *ipiv, double *b)
-{
-  int i,j,k;
-  float ratio;
-  for(i=0;i<n;i++)
-  {
-	
-	  printf("a[%d][%d] = %.10f\n", i, j, *(a + i*n + j));
-	  printf("a[%d][%d] = %.10f\n", i, j, a[i*n+j]);
-	  if (*(a + i*n + i) == 0)
-	  {
-		printf("Mathematical Error!");
-		exit(0);
-	  }
-	  for(j=i+1;j<n;j++)
-	  {
-		ratio = *(a + i*n + j)/(*(a + i*n + i));
-		for(k=0;k<n+1;k++)
-		{
-			*(a + i*n + k) = *(a + j*n + k) - ratio*(*(a + i*n + k));
-		}
-	  }
-  }
-  printf("float[%d] = %f\n",n-1, *(b + (n-1)*n + (n)) / (*(a + (n-1)*n + (n))));
-  printf("float[%d] = %f\n",0, b[0] / a[0]);
-  printf("float[%d] = %f\n",1, b[1*n] / a[1*n]);
-  //ipiv[n-1] = *(b + (n-1)*n + (n-1)) / (*(a + (n-1)*n + (n-1)));
-  ipiv[n-1] = *(b + (n-1)*n + (n)) / (*(a + (n-1)*n + (n)));
-  printf("ipiv2[%d] = %d\n", n-1, ipiv[n-1]);
-
-  for(i=n-2;i>=0;i--)
-  {
-	ipiv[i] = *(a + i*n + n);
-	for (j=i+1;j<n;j++)
-	{
-	  ipiv[i] = ipiv[i] - *(a + i*n + j) * ipiv[j];
-	}
-	ipiv[i] = ipiv[i] / *(a + i*n +i);
-  }
-  printf("new ipiv2 : \n");
-  print_matrix_1d_int(ipiv,n);
-  return 1;
-}*/
 
 void print_matrix_1d(double *matrix, int n)
 {
