@@ -2,8 +2,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
-//#include <openblas/lapacke.h>
-#include <mkl_lapacke.h>
+#include <string.h>
+#include <openblas/lapacke.h>
+//#include <mkl_lapacke.h>
 
 double *generate_matrix(int size)
 {
@@ -38,7 +39,7 @@ int check_result(double *bref, double *b, int size)
   return 1;
 }
 
-extern void print_matrix( char* desc, MKL_INT m, MKL_INT n, double* a, MKL_INT lda );
+//extern void print_matrix( char* desc, MKL_INT m, MKL_INT n, double* a, MKL_INT lda );
 
 /*int my_dgesv(int n, int nrhs, double *a, int lda, int *ipiv, double *b, int ldb)
 {
@@ -67,7 +68,7 @@ int my_dgesv(int n, int nrhs, double *a, int lda, int *ipiv, double *b, int ldb)
 
   lda = n, nrhs = n;
 
-  printf("initial matrix a :\n");
+  /*printf("initial matrix a :\n");
   for(i=0;i<n;i++)
   {
 	for(j=0;j<lda;j++)
@@ -84,7 +85,7 @@ int my_dgesv(int n, int nrhs, double *a, int lda, int *ipiv, double *b, int ldb)
 	  printf( " %6.2f", b[i*n+j]);
 	}
 	printf("\n");
-  }
+  }*/
 
   double matrix[n][n+1];
 
@@ -102,7 +103,7 @@ int my_dgesv(int n, int nrhs, double *a, int lda, int *ipiv, double *b, int ldb)
 		  }
 		}
 	}
-	printf("matrix a after adding column :\n");
+	/*printf("matrix a after adding column :\n");
 	for(i=0;i<n;i++)
 	{
 		for(j=0;j<lda+1;j++)
@@ -110,7 +111,7 @@ int my_dgesv(int n, int nrhs, double *a, int lda, int *ipiv, double *b, int ldb)
 		   printf( " %6.2f", matrix[i][j]);
 		}
 		printf("\n");
-	}
+	}*/
 
 	for(i=0;i<n-1;i++)
 	{
@@ -128,9 +129,7 @@ int my_dgesv(int n, int nrhs, double *a, int lda, int *ipiv, double *b, int ldb)
 		}
 	  }
 	}
-
-	x[n] = matrix[n-1][lda]/matrix[n-1][lda-1];
-
+	//x[n] = matrix[n-1][lda]/matrix[n-1][lda-1];
 	for(i=n-1;i>=0;i--)
 	{
 	  x[i] = matrix[i][lda];
@@ -141,72 +140,41 @@ int my_dgesv(int n, int nrhs, double *a, int lda, int *ipiv, double *b, int ldb)
 	  x[i] = x[i]/matrix[i][i];
 	}
 
-
 	for(i=0;i<n;i++)
 	{
-	  printf("x[%d] = %6.2f\n",i, x[i]);
+	  //printf("x[%d] = %6.2f\n",i, x[i]);
 	  x_matrix[i][u] = x[i];
-	  printf("x_matrix[%d][%d] = %6.2f\n",i,u, x_matrix[i][u]);
+	  b[i*n+u] = x[i];
+	  //printf("x_matrix[%d][%d] = %6.2f\n",i,u, x_matrix[i][u]);
 	}
-
-	
 
   }
 
-  printf("end u\n");
+  //printf("end u\n");
 
-  printf("\nSolution:\n");
+  /*printf("\nMy Solution:\n");
   for(i=0;i<nrhs;i++)
   {
   	for(j=0;j<ldb;j++)
         {
-            printf("x_matrix[%d][%d] = %6.2f\n", i, j, x_matrix[i][j]);
+            //printf("x_matrix[%d][%d] = %6.2f\n", i, j, x_matrix[i][j]);
 	    printf( " %6.2f", x_matrix[i][j]);
         }
 	printf("\n");
-  }
+  }*/
 
-  
 }
 
 
-void print_matrix_1d(double *matrix, int n)
-{
-	for (int i=0; i<n; i++)
-	{
-		printf("matrix[%d] = %f\n",i,matrix[i]);
-	}
-}
 
-void print_matrix_2d(double *matrix, int nb_row, int nb_col)
-{
-	for (int i=0; i<nb_row; i++)
-	{
-		for (int j=0; j<nb_col; j++)
-		{
-			printf("matrix[%d][%d] = %f\n",i,j,matrix[i*nb_row+j]);
-		}
-	}
-}
-
-void print_matrix_1d_int(int *matrix, int n)
-{
-	for (int i=0; i<n; i++)
-	{
-		printf("matrix[%d] = %d\n",i,matrix[i]);
-	}
-}
-
-
-void print_matrix( char* desc, MKL_INT m, MKL_INT n, double* a, MKL_INT lda ) {
-        MKL_INT i, j;
+void print_matrix( char* desc, int r, int ld, double* a, int n ) {
+        int i, j;
         printf( "\n %s\n", desc );
-        for( i = 0; i < m; i++ ) {
-                for( j = 0; j < n; j++ ) printf( " %6.2f", a[i+j*lda] );
+        for( i = 0; i < r; i++ ) {
+                for( j = 0; j < ld; j++ ) printf( " %6.2f", a[i*n+j] );
                 printf( "\n" );
         }
 }
-
 
 void main(int argc, char *argv[])
 {
@@ -215,59 +183,58 @@ void main(int argc, char *argv[])
   double *a, *aref;
   double *b, *bref;
 
+  aref = (double *) malloc(sizeof(double) * size * size);
+  bref = (double *) malloc(sizeof(double) * size * size);
   a = generate_matrix(size);
-  aref = generate_matrix(size);
+  //aref = generate_matrix(size);
+  memcpy(aref, a, size*size*sizeof(double));
   b = generate_matrix(size);
-  bref = generate_matrix(size);
-
-
-  printf("b = \n");
-  print_matrix_1d(b,size);
-  printf("bref = \n");
-  print_matrix_1d(bref,size);
+  //bref = generate_matrix(size);
+  //bref = b;
+  memcpy(bref, b, size*size*sizeof(double));
 
   // Using LAPACK dgesv OpenBLAS implementation to solve the system
   int n = size, nrhs = size, lda = size, ldb = size, info;
   int *ipiv = (int *) malloc(sizeof(int) * size);
 
-  printf("matrix a :\n");
-  print_matrix_2d(a, n, lda);
+  /*printf("matrix a :\n");
+  print_matrix( "Initial A", n, lda, a, size );
 
   printf("matrix aref :\n");
-  print_matrix_2d(aref, n, lda);
 
+  print_matrix( "Initial Aref", n, lda, aref, size );
+  */
   clock_t tStart = clock();
+  /*printf("openblas\n");
+  print_matrix( "Initial B", nrhs, ldb, b, size );
+  print_matrix( "Initial Bref", nrhs, ldb, bref, size );
+  */
+  //info = LAPACKE_dgesv(LAPACK_ROW_MAJOR, n, nrhs, aref, lda, ipiv, bref, ldb);
   info = LAPACKE_dgesv(LAPACK_ROW_MAJOR, n, nrhs, aref, lda, ipiv, bref, ldb);
-  printf("info = %d\n",info);
-  print_matrix( "Solution", n, nrhs, bref, ldb );
-  printf("new bref = \n");
-  print_matrix_1d(bref,size);
-  printf("new ipiv = \n");
-  /*for (int i;i<size;i++)
-  {
-	printf("ipiv[%d] = %f", i, ipiv[i]);
-  }*/
-  printf("new a = \n");
-  print_matrix_2d(a, n, lda);
+  /*printf("info = %d\n",info);
+  print_matrix( "LAPACKE_dgesv Solution", nrhs, ldb, bref, size );
+  */
   printf("Time taken by OpenBLAS LAPACK: %.2fs\n", (double) (clock() - tStart) / CLOCKS_PER_SEC);
-  printf("ipiv 1 = %d\n", ipiv[n-1]);
+  //printf("ipiv 1 = %d\n", ipiv[n-1]);
   int *ipiv2 = (int *) malloc(sizeof(int) * size);
 
   tStart = clock();
   /* n: nb rows of matrix a, nrhs: nb rows of matrix b, matrix a, lda: nb cols 
   of matrix a, ipiv: Pivot indices, matrix b, ldb: nb cols of matrix b */
   my_dgesv(n, nrhs, a, lda, ipiv2, b, ldb);
-  print_matrix( "expected Solution", n, nrhs, bref, ldb );
+  //print_matrix( "NEW B", nrhs, ldb, b, size );
+
+  //print_matrix( "expected Solution", n, nrhs, bref, ldb );
   
-  printf("bref :\n");
-  for(int i=0;i<ldb;i++)
+  /*printf("bref :\n");
+  for(int i=0;i<nrhs;i++)
   {
-	for(int j=0;j<nrhs;j++)
+	for(int j=0;j<ldb;j++)
 	{
-	  printf( " %6.2f", bref[j*n+i]);
+	  printf( " %6.2f", bref[i*n+j]);
 	}
 	printf("\n");
-  }
+  }*/
 
   //printf("result : %d\n", my_dgesv(size, a, ipiv2, b));
   //print_matrix( "Solution", n, nrhs, b, ldb );
