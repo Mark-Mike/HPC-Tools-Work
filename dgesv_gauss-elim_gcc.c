@@ -222,6 +222,7 @@ void main(int argc, char *argv[])
   /* n: nb rows of matrix a, nrhs: nb rows of matrix b, matrix a, lda: nb cols 
   of matrix a, ipiv: Pivot indices, matrix b, ldb: nb cols of matrix b */
   my_dgesv(n, nrhs, a, lda, ipiv2, b, ldb);
+
   //print_matrix( "NEW B", nrhs, ldb, b, size );
 
   //print_matrix( "expected Solution", n, nrhs, bref, ldb );
@@ -238,6 +239,7 @@ void main(int argc, char *argv[])
 
   //printf("result : %d\n", my_dgesv(size, a, ipiv2, b));
   //print_matrix( "Solution", n, nrhs, b, ldb );
+  //printf("Hi\n");
   printf("Time taken by my implementation: %.2fs\n", (double) (clock() - tStart) / CLOCKS_PER_SEC);
 
   if (check_result(bref, b, size) == 1)
